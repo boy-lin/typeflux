@@ -1112,6 +1112,12 @@
 "auth.account.usageTranscripts" = "Transcript Chars";
 "auth.account.usageAnswers" = "Answer Chars";
 "auth.account.refreshUsage" = "Refresh Usage";
+"auth.account.usageQuota" = "Cloud Credits";
+"auth.account.usageQuotaRemaining" = "%@ remaining";
+"auth.account.usageQuotaUnlimited" = "Unlimited allowance";
+"auth.account.usageQuotaUsedOfLimit" = "%@ / %@ used (%@)";
+"auth.account.usageQuotaUsedUnlimited" = "%@ used";
+"auth.account.usageQuotaUnavailable" = "Credit allowance is not available yet.";
 "auth.account.usageSeconds" = "%.0f sec";
 "auth.account.usageMinutes" = "%.1f min";
 "auth.account.usageHours" = "%.1f hr";

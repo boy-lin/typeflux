@@ -37,14 +37,30 @@ struct CloudUsageStats: Decodable, Equatable {
     }
 }
 
+struct CloudCreditSummary: Decodable, Equatable {
+    let limit: Int
+    let used: Int
+    let remaining: Int
+    let unlimited: Bool
+}
+
 struct CloudUsageCurrentPeriodStats: Decodable, Equatable {
     let periodStart: String
     let periodEnd: String
     let stats: CloudUsageStats
+    let credits: CloudCreditSummary?
+
+    init(periodStart: String, periodEnd: String, stats: CloudUsageStats, credits: CloudCreditSummary? = nil) {
+        self.periodStart = periodStart
+        self.periodEnd = periodEnd
+        self.stats = stats
+        self.credits = credits
+    }
 
     enum CodingKeys: String, CodingKey {
         case periodStart = "period_start"
         case periodEnd = "period_end"
         case stats
+        case credits
     }
 }

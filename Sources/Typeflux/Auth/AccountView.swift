@@ -158,6 +158,10 @@ struct AccountView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+                if let credits = authState.usageCredits {
+                    AccountUsageCreditProgressView(credits: credits)
+                }
+
                 HStack(alignment: .top, spacing: StudioTheme.Spacing.medium) {
                     accountSummaryItem(
                         label: L("auth.account.usageAudio"),

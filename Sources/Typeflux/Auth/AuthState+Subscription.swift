@@ -45,6 +45,7 @@ extension AuthState {
     func refreshUsage() async -> CloudUsageStats? {
         guard let token = accessToken else {
             usageStats = .empty
+            usageCredits = nil
             return nil
         }
 
@@ -54,6 +55,7 @@ extension AuthState {
         do {
             let snapshot = try await fetchCurrentPeriodUsageStats(token)
             usageStats = snapshot.stats
+            usageCredits = snapshot.credits
             usagePeriodStart = snapshot.periodStart
             usagePeriodEnd = snapshot.periodEnd
             usageError = nil
@@ -61,6 +63,7 @@ extension AuthState {
         } catch let error as AuthError {
             if error.authErrorCode == "USAGE_PERIOD_UNAVAILABLE" {
                 usageStats = .empty
+                usageCredits = nil
                 usagePeriodStart = nil
                 usagePeriodEnd = nil
                 usageError = nil

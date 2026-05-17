@@ -56,6 +56,14 @@ enum AccountUsageDisplayFormatter {
         return String(format: L("auth.account.usageDays"), hours / 24)
     }
 
+    static func creditAmount(_ value: Int) -> String {
+        fixedDecimal(Double(value), maximumFractionDigits: 2)
+    }
+
+    static func percentage(_ value: Double) -> String {
+        fixedDecimal(value, maximumFractionDigits: 2) + "%"
+    }
+
     private static func roundedCompactValue(_ value: Double) -> Double {
         if value >= 100 {
             return value.rounded()
@@ -74,5 +82,16 @@ enum AccountUsageDisplayFormatter {
         formatter.minimumFractionDigits = 0
         formatter.maximumFractionDigits = value >= 100 ? 0 : (value >= 10 ? 1 : 2)
         return formatter.string(from: NSNumber(value: value)) ?? "\(value)"
+    }
+
+    private static func fixedDecimal(_ value: Double, maximumFractionDigits: Int) -> String {
+        let formatter = NumberFormatter()
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.numberStyle = .decimal
+        formatter.usesGroupingSeparator = true
+        formatter.minimumFractionDigits = maximumFractionDigits
+        formatter.maximumFractionDigits = maximumFractionDigits
+        formatter.roundingMode = .halfUp
+        return formatter.string(from: NSNumber(value: value)) ?? String(format: "%.\(maximumFractionDigits)f", value)
     }
 }

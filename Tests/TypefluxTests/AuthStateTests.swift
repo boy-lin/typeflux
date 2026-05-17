@@ -516,7 +516,8 @@ final class AuthStateTests: XCTestCase {
                 return CloudUsageCurrentPeriodStats(
                     periodStart: "2026-05-01T00:00:00Z",
                     periodEnd: "2026-06-01T00:00:00Z",
-                    stats: stats
+                    stats: stats,
+                    credits: CloudCreditSummary(limit: 2000, used: 120, remaining: 1880, unlimited: false)
                 )
             }
         )
@@ -526,6 +527,10 @@ final class AuthStateTests: XCTestCase {
 
         XCTAssertEqual(usageFetchCount, 1)
         XCTAssertEqual(state.usageStats, stats)
+        XCTAssertEqual(
+            state.usageCredits,
+            CloudCreditSummary(limit: 2000, used: 120, remaining: 1880, unlimited: false)
+        )
         XCTAssertEqual(state.usagePeriodStart, "2026-05-01T00:00:00Z")
         XCTAssertEqual(state.usagePeriodEnd, "2026-06-01T00:00:00Z")
     }
@@ -552,6 +557,7 @@ final class AuthStateTests: XCTestCase {
         await state.refreshUsage()
 
         XCTAssertEqual(state.usageStats, .empty)
+        XCTAssertNil(state.usageCredits)
         XCTAssertNil(state.usagePeriodStart)
         XCTAssertNil(state.usagePeriodEnd)
         XCTAssertNil(state.usageError)
@@ -583,6 +589,7 @@ final class AuthStateTests: XCTestCase {
         XCTAssertTrue(state.isLoggedIn)
         XCTAssertEqual(storedToken?.token, "token-1")
         XCTAssertEqual(state.usageStats, .empty)
+        XCTAssertNil(state.usageCredits)
         XCTAssertNotNil(state.usageError)
     }
 

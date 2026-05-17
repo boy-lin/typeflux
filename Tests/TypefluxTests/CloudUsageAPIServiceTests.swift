@@ -26,6 +26,12 @@ final class CloudUsageAPIServiceTests: XCTestCase {
                   "chat_input_tokens": 1000,
                   "chat_output_tokens": 240,
                   "chat_total_tokens": 1240
+                },
+                "credits": {
+                  "limit": 2000,
+                  "used": 48,
+                  "remaining": 1952,
+                  "unlimited": false
                 }
               }
             }
@@ -42,6 +48,7 @@ final class CloudUsageAPIServiceTests: XCTestCase {
         XCTAssertEqual(snapshot.stats.asrAudioDurationMs, 125_000)
         XCTAssertEqual(snapshot.stats.chatTotalTokens, 1240)
         XCTAssertEqual(snapshot.stats.totalRequests, 5)
+        XCTAssertEqual(snapshot.credits, CloudCreditSummary(limit: 2000, used: 48, remaining: 1952, unlimited: false))
     }
 
     private func makeService(session: CloudUsageStubSession) -> CloudUsageAPIService {

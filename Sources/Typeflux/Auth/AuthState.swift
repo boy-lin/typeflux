@@ -55,6 +55,7 @@ final class AuthState: ObservableObject {
     @Published var isLoadingSubscription: Bool = false
     @Published var subscriptionError: String?
     @Published var usageStats: CloudUsageStats = .empty
+    @Published var usageCredits: CloudCreditSummary?
     @Published var usagePeriodStart: String?
     @Published var usagePeriodEnd: String?
     @Published var isLoadingUsage: Bool = false
@@ -182,6 +183,7 @@ final class AuthState: ObservableObject {
         subscription = .none
         subscriptionError = nil
         usageStats = .empty
+        usageCredits = nil
         usagePeriodStart = nil
         usagePeriodEnd = nil
         usageError = nil

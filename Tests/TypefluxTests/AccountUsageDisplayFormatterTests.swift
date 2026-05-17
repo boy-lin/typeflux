@@ -24,4 +24,14 @@ final class AccountUsageDisplayFormatterTests: XCTestCase {
     func testCountPreservesNegativeSign() {
         XCTAssertEqual(AccountUsageDisplayFormatter.count(-12345), "-12.3K")
     }
+
+    func testCreditAmountUsesTwoFractionDigits() {
+        XCTAssertEqual(AccountUsageDisplayFormatter.creditAmount(0), "0.00")
+        XCTAssertEqual(AccountUsageDisplayFormatter.creditAmount(1997), "1,997.00")
+    }
+
+    func testPercentageUsesTwoFractionDigits() {
+        XCTAssertEqual(AccountUsageDisplayFormatter.percentage(0), "0.00%")
+        XCTAssertEqual(AccountUsageDisplayFormatter.percentage(12.345), "12.35%")
+    }
 }

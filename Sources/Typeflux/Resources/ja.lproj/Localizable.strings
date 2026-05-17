@@ -1101,6 +1101,12 @@
 "auth.account.usageTranscripts" = "文字起こし文字数";
 "auth.account.usageAnswers" = "回答文字数";
 "auth.account.refreshUsage" = "使用量を更新";
+"auth.account.usageQuota" = "クラウドクレジット";
+"auth.account.usageQuotaRemaining" = "残り %@";
+"auth.account.usageQuotaUnlimited" = "無制限";
+"auth.account.usageQuotaUsedOfLimit" = "%@ / %@ 使用済み（%@）";
+"auth.account.usageQuotaUsedUnlimited" = "%@ 使用済み";
+"auth.account.usageQuotaUnavailable" = "クレジット枠はまだ利用できません。";
 "auth.account.usageSeconds" = "%.0f 秒";
 "auth.account.usageMinutes" = "%.1f 分";
 "auth.account.usageHours" = "%.1f 時間";

@@ -1101,6 +1101,12 @@
 "auth.account.usageTranscripts" = "전사 문자";
 "auth.account.usageAnswers" = "답변 문자";
 "auth.account.refreshUsage" = "사용량 새로고침";
+"auth.account.usageQuota" = "클라우드 크레딧";
+"auth.account.usageQuotaRemaining" = "%@ 남음";
+"auth.account.usageQuotaUnlimited" = "무제한";
+"auth.account.usageQuotaUsedOfLimit" = "%@ / %@ 사용됨(%@)";
+"auth.account.usageQuotaUsedUnlimited" = "%@ 사용됨";
+"auth.account.usageQuotaUnavailable" = "크레딧 한도를 아직 사용할 수 없습니다.";
 "auth.account.usageSeconds" = "%.0f초";
 "auth.account.usageMinutes" = "%.1f분";
 "auth.account.usageHours" = "%.1f시간";

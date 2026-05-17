@@ -1108,6 +1108,12 @@
 "auth.account.usageTranscripts" = "轉寫字元";
 "auth.account.usageAnswers" = "回覆字元";
 "auth.account.refreshUsage" = "重新整理用量";
+"auth.account.usageQuota" = "雲端額度";
+"auth.account.usageQuotaRemaining" = "剩餘 %@";
+"auth.account.usageQuotaUnlimited" = "不限額度";
+"auth.account.usageQuotaUsedOfLimit" = "已用 %@ / %@（%@）";
+"auth.account.usageQuotaUsedUnlimited" = "已用 %@";
+"auth.account.usageQuotaUnavailable" = "額度暫不可用。";
 "auth.account.usageSeconds" = "%.0f 秒";
 "auth.account.usageMinutes" = "%.1f 分鐘";
 "auth.account.usageHours" = "%.1f 小時";

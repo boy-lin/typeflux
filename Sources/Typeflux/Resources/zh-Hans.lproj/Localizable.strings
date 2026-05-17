@@ -1112,6 +1112,12 @@
 "auth.account.usageTranscripts" = "转写字符";
 "auth.account.usageAnswers" = "回复字符";
 "auth.account.refreshUsage" = "刷新用量";
+"auth.account.usageQuota" = "云端额度";
+"auth.account.usageQuotaRemaining" = "剩余 %@";
+"auth.account.usageQuotaUnlimited" = "不限额度";
+"auth.account.usageQuotaUsedOfLimit" = "已用 %@ / %@（%@）";
+"auth.account.usageQuotaUsedUnlimited" = "已用 %@";
+"auth.account.usageQuotaUnavailable" = "额度暂不可用。";
 "auth.account.usageSeconds" = "%.0f 秒";
 "auth.account.usageMinutes" = "%.1f 分钟";
 "auth.account.usageHours" = "%.1f 小时";
