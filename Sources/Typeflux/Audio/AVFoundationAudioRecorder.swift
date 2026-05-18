@@ -103,9 +103,10 @@ final class AVFoundationAudioRecorder: AudioRecorder {
 
         engine = preparedSession.engine
         isTapInstalled = true
+        let startedAt = Date()
         stateCondition.lock()
         audioFile = preparedSession.audioFile
-        startedAt = preparedSession.startedAt
+        self.startedAt = startedAt
         self.levelHandler = levelHandler
         self.audioBufferHandler = audioBufferHandler
         activeRecordingID = preparedSession.id
@@ -113,6 +114,16 @@ final class AVFoundationAudioRecorder: AudioRecorder {
         let callbackCountAtStart = inputBufferCallbackCount
         peakInputPowerSinceStart = -.infinity
         stateCondition.unlock()
+
+        do {
+            engine.prepare()
+            try engine.start()
+            RecordingStartupLatencyTrace.shared.mark("audio.engine_start_return")
+        } catch {
+            stopInternal()
+            throw error
+        }
+
         scheduleSilentInputRecoveryIfNeeded(callbackCountAtStart: callbackCountAtStart)
         if settingsStore.muteSystemOutputDuringRecording {
             scheduleMutedSessionStart()
@@ -261,17 +272,6 @@ final class AVFoundationAudioRecorder: AudioRecorder {
             self?.handleInputBuffer(buffer, recordingID: id)
         }
 
-        do {
-            sessionEngine.prepare()
-            try sessionEngine.start()
-            RecordingStartupLatencyTrace.shared.mark("audio.engine_start_return")
-        } catch {
-            inputNode.removeTap(onBus: 0)
-            sessionEngine.stop()
-            sessionEngine.reset()
-            throw error
-        }
-
         guard !startupAttempt.isCancelled else {
             inputNode.removeTap(onBus: 0)
             sessionEngine.stop()
@@ -282,8 +282,7 @@ final class AVFoundationAudioRecorder: AudioRecorder {
         return PreparedRecordingSession(
             id: id,
             engine: sessionEngine,
-            audioFile: outputFile,
-            startedAt: Date()
+            audioFile: outputFile
         )
     }
 
@@ -680,7 +679,6 @@ private struct PreparedRecordingSession {
     let id: UUID
     let engine: AVAudioEngine
     let audioFile: AVAudioFile
-    let startedAt: Date
 }
 
 private final class RecordingStartupAttempt {
