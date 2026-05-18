@@ -157,6 +157,93 @@ final class WorkflowControllerProcessingTests: XCTestCase {
         XCTAssertFalse(controller.shouldUseQuickInput(recordingMode: .holdToTalk, recordingIntent: .dictation))
     }
 
+    func testRecordingHintUsesQuickInputModeWhenQuickInputApplies() {
+        let controller = makeWorkflowController(configureSettings: { settingsStore in
+            settingsStore.quickInputEnabled = true
+        })
+
+        let hint = controller.recordingHintPresentation(
+            intent: .dictation,
+            recordingMode: .holdToTalk,
+            appName: nil,
+            bundleIdentifier: nil
+        )
+
+        XCTAssertEqual(hint.text, L("overlay.recording.quickInputHint"))
+        XCTAssertEqual(hint.autoHideAfter, WorkflowController.recordingHintAutoHideDelay)
+    }
+
+    func testRecordingHintUsesPersonaNameWhenQuickInputDoesNotApply() {
+        let persona = PersonaProfile(name: "Meeting Notes", prompt: "Clean up dictation.")
+        let controller = makeWorkflowController(configureSettings: { settingsStore in
+            settingsStore.personaRewriteEnabled = true
+            settingsStore.personas = settingsStore.personas + [persona]
+            settingsStore.activePersonaID = persona.id.uuidString
+        })
+
+        let hint = controller.recordingHintPresentation(
+            intent: .dictation,
+            recordingMode: .locked,
+            appName: nil,
+            bundleIdentifier: nil
+        )
+
+        XCTAssertEqual(hint.text, L("overlay.recording.personaHint", persona.name))
+        XCTAssertEqual(hint.autoHideAfter, WorkflowController.recordingHintAutoHideDelay)
+    }
+
+    func testRecordingHintUsesPersonaNameForLockedRecordingWhenQuickInputIsEnabled() {
+        let persona = PersonaProfile(name: "Meeting Notes", prompt: "Clean up dictation.")
+        let controller = makeWorkflowController(configureSettings: { settingsStore in
+            settingsStore.quickInputEnabled = true
+            settingsStore.personaRewriteEnabled = true
+            settingsStore.personas = settingsStore.personas + [persona]
+            settingsStore.activePersonaID = persona.id.uuidString
+        })
+
+        let hint = controller.recordingHintPresentation(
+            intent: .dictation,
+            recordingMode: .locked,
+            appName: nil,
+            bundleIdentifier: nil
+        )
+
+        XCTAssertEqual(hint.text, L("overlay.recording.personaHint", persona.name))
+        XCTAssertEqual(hint.autoHideAfter, WorkflowController.recordingHintAutoHideDelay)
+    }
+
+    func testRecordingHintIsEmptyWhenNoPersonaIsActive() {
+        let controller = makeWorkflowController(configureSettings: { settingsStore in
+            settingsStore.personaRewriteEnabled = false
+        })
+
+        let hint = controller.recordingHintPresentation(
+            intent: .dictation,
+            recordingMode: .locked,
+            appName: nil,
+            bundleIdentifier: nil
+        )
+
+        XCTAssertNil(hint.text)
+        XCTAssertNil(hint.autoHideAfter)
+    }
+
+    func testRecordingHintKeepsAskAnythingGuidanceBehavior() {
+        let controller = makeWorkflowController(configureSettings: { settingsStore in
+            settingsStore.quickInputEnabled = true
+        })
+
+        let hint = controller.recordingHintPresentation(
+            intent: .askSelection,
+            recordingMode: .holdToTalk,
+            appName: nil,
+            bundleIdentifier: nil
+        )
+
+        XCTAssertEqual(hint.text, L("overlay.ask.guidance"))
+        XCTAssertNil(hint.autoHideAfter)
+    }
+
     func testActivePersonaPromptUsesFocusedAppBinding() {
         let customPersona = PersonaProfile(name: "Chat Reply", prompt: "Keep it warm and casual.")
         let controller = makeWorkflowController(configureSettings: { settingsStore in

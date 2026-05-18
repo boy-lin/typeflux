@@ -28,6 +28,7 @@ final class WorkflowController {
     // still considered for analysis.
     static let automaticVocabularyEditRatioLimit: Double = 0.8
     static let localModelPreheatDebounce: Duration = .milliseconds(180)
+    static let recordingHintAutoHideDelay: TimeInterval = 3.0
     static let audioStartupMaxAttemptCount = 3
     static let audioStartupRetryDelay: Duration = .milliseconds(250)
     static let llmTimeoutAfterTranscriptionSeconds: TimeInterval = 30
@@ -710,9 +711,13 @@ final class WorkflowController {
         RecordingStartupLatencyTrace.shared.mark("workflow.lock_active_recording")
         recordingMode = .locked
         hotkeyPressedAt = nil
+        let recordingHint = currentRecordingHintPresentation()
         Task { @MainActor in
             guard self.isRecording else { return }
-            self.overlayController.showLockedRecording()
+            self.overlayController.showLockedRecording(
+                hintText: recordingHint.text,
+                autoHideHintAfter: recordingHint.autoHideAfter
+            )
         }
     }
 
@@ -831,6 +836,11 @@ final class WorkflowController {
         let icon: NSImage?
     }
 
+    struct RecordingHintPresentation: Equatable {
+        let text: String?
+        let autoHideAfter: TimeInterval?
+    }
+
     private static func frontmostApplicationContext() -> FrontmostApplicationContext {
         let application = NSWorkspace.shared.frontmostApplication
         let isTypeflux = application?.bundleIdentifier == Bundle.main.bundleIdentifier
@@ -870,6 +880,46 @@ final class WorkflowController {
         return nil
     }
 
+    func recordingHintPresentation(
+        intent: RecordingIntent,
+        recordingMode: RecordingMode,
+        appName: String?,
+        bundleIdentifier: String?
+    ) -> RecordingHintPresentation {
+        if intent == .askSelection {
+            return RecordingHintPresentation(text: L("overlay.ask.guidance"), autoHideAfter: nil)
+        }
+
+        if shouldUseQuickInput(recordingMode: recordingMode, recordingIntent: intent) {
+            return RecordingHintPresentation(
+                text: L("overlay.recording.quickInputHint"),
+                autoHideAfter: Self.recordingHintAutoHideDelay
+            )
+        }
+
+        guard let persona = settingsStore.effectivePersona(
+            appName: appName,
+            bundleIdentifier: bundleIdentifier
+        ) else {
+            return RecordingHintPresentation(text: nil, autoHideAfter: nil)
+        }
+
+        return RecordingHintPresentation(
+            text: L("overlay.recording.personaHint", persona.name),
+            autoHideAfter: Self.recordingHintAutoHideDelay
+        )
+    }
+
+    func currentRecordingHintPresentation() -> RecordingHintPresentation {
+        let frontmostApplicationContext = Self.frontmostApplicationContext()
+        return recordingHintPresentation(
+            intent: recordingIntent,
+            recordingMode: recordingMode,
+            appName: frontmostApplicationContext.appName,
+            bundleIdentifier: frontmostApplicationContext.bundleIdentifier
+        )
+    }
+
     func beginRecording(intent: RecordingIntent, startLocked: Bool, startID: UUID? = nil) async {
         if let startID, pendingRecordingStartID != startID {
             RecordingStartupLatencyTrace.shared.mark("workflow.begin_recording_cancelled")
@@ -888,6 +938,7 @@ final class WorkflowController {
         recordingIntent = effectiveIntent
         lastRetryableFailureRecord = nil
         latestRecordingPreviewText = ""
+        let recordingHint = currentRecordingHintPresentation()
         NSLog("[Workflow] Recording started")
 
         Task { @MainActor in
@@ -897,10 +948,16 @@ final class WorkflowController {
                 if effectiveIntent == .askSelection {
                     overlayController.showLockedRecording(hintText: L("overlay.ask.guidance"))
                 } else {
-                    overlayController.showLockedRecording()
+                    overlayController.showLockedRecording(
+                        hintText: recordingHint.text,
+                        autoHideHintAfter: recordingHint.autoHideAfter
+                    )
                 }
             } else {
-                overlayController.show()
+                overlayController.show(
+                    hintText: recordingHint.text,
+                    autoHideHintAfter: recordingHint.autoHideAfter
+                )
             }
         }
 
@@ -1084,8 +1141,12 @@ final class WorkflowController {
 
         if pressDuration < Self.tapToLockThreshold {
             recordingMode = .locked
+            let recordingHint = currentRecordingHintPresentation()
             Task { @MainActor in
-                overlayController.showLockedRecording()
+                overlayController.showLockedRecording(
+                    hintText: recordingHint.text,
+                    autoHideHintAfter: recordingHint.autoHideAfter
+                )
             }
             return
         }

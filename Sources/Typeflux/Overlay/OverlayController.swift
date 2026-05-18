@@ -280,6 +280,7 @@ final class OverlayController {
     private var lastPositionedPresentation: OverlayViewModel.Presentation?
     private var pendingFrameAnimationWorkItem: DispatchWorkItem?
     private var pendingPresentationWorkItem: DispatchWorkItem?
+    private var recordingHintAutoHideWorkItem: DispatchWorkItem?
 
     init(appState: AppStateStore) {
         self.appState = appState
@@ -333,15 +334,18 @@ final class OverlayController {
         model.onFailureRetryHandler = onRetry
     }
 
-    func show(hintText: String? = nil) {
+    func show(hintText: String? = nil, autoHideHintAfter: TimeInterval? = nil) {
         if !Thread.isMainThread {
-            DispatchQueue.main.async { [weak self] in self?.show(hintText: hintText) }
+            DispatchQueue.main.async { [weak self] in
+                self?.show(hintText: hintText, autoHideHintAfter: autoHideHintAfter)
+            }
             return
         }
         pendingPresentationWorkItem?.cancel()
         pendingPresentationWorkItem = nil
         dismissWorkItem?.cancel()
         dismissWorkItem = nil
+        cancelRecordingHintAutoHide()
         ensureWindow()
         model.presentation = .recordingHold
         model.recordingPreviewExpanded = false
@@ -350,6 +354,7 @@ final class OverlayController {
         model.recordingHintText = hintText ?? ""
         model.processingProgress = 0
         refreshWindow()
+        scheduleRecordingHintAutoHideIfNeeded(after: autoHideHintAfter, expectedText: hintText)
     }
 
     private func cancelPendingPresentationTransition() {
@@ -388,20 +393,24 @@ final class OverlayController {
         }
     }
 
-    func showLockedRecording(hintText: String? = nil) {
+    func showLockedRecording(hintText: String? = nil, autoHideHintAfter: TimeInterval? = nil) {
         if !Thread.isMainThread {
-            DispatchQueue.main.async { [weak self] in self?.showLockedRecording(hintText: hintText) }
+            DispatchQueue.main.async { [weak self] in
+                self?.showLockedRecording(hintText: hintText, autoHideHintAfter: autoHideHintAfter)
+            }
             return
         }
         pendingPresentationWorkItem?.cancel()
         pendingPresentationWorkItem = nil
         dismissWorkItem?.cancel()
         dismissWorkItem = nil
+        cancelRecordingHintAutoHide()
         ensureWindow()
         model.presentation = .recordingLocked
         model.recordingPreviewExpanded = false
         model.recordingHintText = hintText ?? ""
         refreshWindow()
+        scheduleRecordingHintAutoHideIfNeeded(after: autoHideHintAfter, expectedText: hintText)
     }
 
     func updateRecordingPreviewText(_ text: String) {
@@ -438,6 +447,7 @@ final class OverlayController {
             model.recordingPreviewExpanded = false
             model.statusText = L(Self.processingStatusLocalizationKey)
             model.recordingHintText = ""
+            cancelRecordingHintAutoHide()
             model.processingProgress = 0
             model.processingPhase = 1
             model.processingEpoch += 1
@@ -461,6 +471,7 @@ final class OverlayController {
         model.statusText = L(Self.processingStatusLocalizationKey)
         model.detailText = ""
         model.recordingHintText = ""
+        cancelRecordingHintAutoHide()
         model.processingProgress = 0
         model.processingPhase = 1
         model.processingEpoch += 1
@@ -480,6 +491,7 @@ final class OverlayController {
         model.statusText = L(Self.processingStatusLocalizationKey)
         model.detailText = ""
         model.recordingHintText = ""
+        cancelRecordingHintAutoHide()
         model.processingProgress = 0
         model.processingPhase = 1
         model.processingEpoch += 1
@@ -771,8 +783,10 @@ final class OverlayController {
             cancelPendingPresentationTransition()
             dismissWorkItem?.cancel()
             dismissWorkItem = nil
+            cancelRecordingHintAutoHide()
             window?.orderOut(nil)
             model.detailText = ""
+            model.recordingHintText = ""
             model.level = 0
             model.processingProgress = 0
             removeKeyMonitoring()
@@ -797,8 +811,10 @@ final class OverlayController {
         }
         dismissWorkItem?.cancel()
         let workItem = DispatchWorkItem { [weak self] in
+            self?.cancelRecordingHintAutoHide()
             self?.window?.orderOut(nil)
             self?.model.detailText = ""
+            self?.model.recordingHintText = ""
             self?.model.level = 0
             self?.model.processingProgress = 0
             self?.removeKeyMonitoring()
@@ -807,6 +823,31 @@ final class OverlayController {
         }
         dismissWorkItem = workItem
         DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+
+    private func scheduleRecordingHintAutoHideIfNeeded(after delay: TimeInterval?, expectedText: String?) {
+        guard let delay, delay > 0, let expectedText, !expectedText.isEmpty else { return }
+        let workItem = DispatchWorkItem { [weak self] in
+            self?.clearRecordingHintText(expectedText: expectedText)
+        }
+        recordingHintAutoHideWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
+    }
+
+    private func cancelRecordingHintAutoHide() {
+        recordingHintAutoHideWorkItem?.cancel()
+        recordingHintAutoHideWorkItem = nil
+    }
+
+    private func clearRecordingHintText(expectedText: String) {
+        guard model.recordingHintText == expectedText else { return }
+        switch model.presentation {
+        case .recordingHold, .recordingHoldPreview, .recordingLocked, .recordingLockedPreview:
+            model.recordingHintText = ""
+            refreshWindow()
+        default:
+            break
+        }
     }
 
     private func refreshWindow() {
