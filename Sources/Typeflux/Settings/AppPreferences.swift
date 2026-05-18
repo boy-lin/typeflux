@@ -1,7 +1,12 @@
 import Foundation
 
 enum AliCloudASRDefaults {
-    static let model = "fun-asr-realtime"
+    static let model = "paraformer-realtime-v2"
+    static let legacyModel = "fun-asr-realtime"
+    static let suggestedModels = [
+        "paraformer-realtime-v2",
+        legacyModel
+    ]
 }
 
 enum GoogleCloudSpeechDefaults {

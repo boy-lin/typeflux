@@ -1671,7 +1671,7 @@ extension WorkflowController {
         personaPrompt: String?,
         inputContext: InputContextSnapshot?
     ) -> Bool {
-        hasRewritePersona(personaPrompt)
+        hasRewritePersona(personaPrompt) || inputContext?.hasContent == true
     }
 
     func shouldShowTypefluxCloudASRLoginFallbackNotice() async -> Bool {

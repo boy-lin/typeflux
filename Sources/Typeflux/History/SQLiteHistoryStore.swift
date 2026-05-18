@@ -324,8 +324,10 @@ final class SQLiteHistoryStore: HistoryStore {
                 self.bind(wildcardQuery, at: 4, in: statement)
                 self.bind(wildcardQuery, at: 5, in: statement)
                 self.bind(wildcardQuery, at: 6, in: statement)
-                sqlite3_bind_int64(statement, 7, sqlite3_int64(limit))
-                sqlite3_bind_int64(statement, 8, sqlite3_int64(offset))
+                self.bind(wildcardQuery, at: 7, in: statement)
+                self.bind(wildcardQuery, at: 8, in: statement)
+                sqlite3_bind_int64(statement, 9, sqlite3_int64(limit))
+                sqlite3_bind_int64(statement, 10, sqlite3_int64(offset))
             }
         )
     }
